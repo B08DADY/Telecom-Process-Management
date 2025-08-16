@@ -1,0 +1,11 @@
+package com.Boghtech.MinAPI.repository;
+
+import com.Boghtech.MinAPI.model.WorkOrder;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface WorkOrderRepository extends JpaRepository<WorkOrder,Long> {
+
+}
+

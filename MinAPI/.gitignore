@@ -1,0 +1,52 @@
+### Build ###
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Logs ###
+*.log
+*.out
+
+### Spring Boot configuration ###
+src/main/resources/application.properties
+src/main/resources/application.yml
+.env
+
+# Example template files should stay in git
+!src/main/resources/application.properties.example
+!src/main/resources/application.yml.example
+
+### Maven Wrapper ###
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS (Spring Tool Suite) ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OS Files ###
+.DS_Store
+Thumbs.db
