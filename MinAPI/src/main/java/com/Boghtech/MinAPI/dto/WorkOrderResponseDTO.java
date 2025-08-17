@@ -8,7 +8,8 @@ public record WorkOrderResponseDTO(
         String customerEmail,
         String customerPhone,
         String customerAddress,
-        String createdAt
+        String createdAt,
+        String VisitDate
         ) {
 
 

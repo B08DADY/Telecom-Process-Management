@@ -1,7 +1,10 @@
 package com.Boghtech.MinAPI.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDate;
 
 public record WorkOrderRequestDTO(
         @NotNull(message = "Customer Name is Required")
@@ -15,7 +18,10 @@ public record WorkOrderRequestDTO(
         String customerPhone,
 
         @NotNull(message = "WorkOrder Description Phone is Required")
-        String workOrderDescription
+        String workOrderDescription,
+
+        @FutureOrPresent(message = "Visit date cannot be in the past.")
+        LocalDate visitDate
 
 ) {
 }
