@@ -7,7 +7,9 @@ import com.Boghtech.MinAPI.exception.ResourceNotFoundException;
 import com.Boghtech.MinAPI.model.Technician;
 import com.Boghtech.MinAPI.repository.TechnicianRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -50,10 +52,18 @@ public class TechnicianService {
     public List<TechnicianResponseDTO> findAvailableTechniciansByDate(LocalDate date) {
         List<Technician> availableTechnicians = technicianRepository.findAvailableTechnicians(date, TOTAL_POSSIBLE_SLOTS);
 
+        if (date != null) {
+            LocalDate maxAllowedDate = LocalDate.now().plusDays(14);
+            if (date.isAfter(maxAllowedDate)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Visit date cannot be more than 14 days in the future.");
+            }
+        }
+
         if (availableTechnicians.isEmpty()) {
 
             throw new ResourceNotFoundException("No technicians are available on the selected date: " + date+",Please Select another date.");
         }
+
         return availableTechnicians.stream()
                 .map(Mapper::toTechnicianResponse)
                 .collect(Collectors.toList());

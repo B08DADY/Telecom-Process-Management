@@ -102,6 +102,9 @@ public class WorkOrderService {
     @Transactional
     public WorkOrderResponseDTO assignTechnicianAndCreateSlot(Long workOrderId, AssignTechnicianRequestDTO assignRequest) {
         // 1. Find the WorkOrder or throw a 404 error
+
+
+
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + workOrderId + "' not found."));
 
