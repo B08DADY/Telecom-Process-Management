@@ -47,7 +47,15 @@ public class TechnicianService {
         }
         technicianRepository.deleteById(id);
     }
-    public List<Long> findAvailableTechniciansByDate(LocalDate date) {
-        return technicianRepository.findTechnicianIdsWithAvailableSlots(date, TOTAL_POSSIBLE_SLOTS);
+    public List<TechnicianResponseDTO> findAvailableTechniciansByDate(LocalDate date) {
+        List<Technician> availableTechnicians = technicianRepository.findAvailableTechnicians(date, TOTAL_POSSIBLE_SLOTS);
+
+        if (availableTechnicians.isEmpty()) {
+
+            throw new ResourceNotFoundException("No technicians are available on the selected date: " + date+",Please Select another date.");
+        }
+        return availableTechnicians.stream()
+                .map(Mapper::toTechnicianResponse)
+                .collect(Collectors.toList());
     }
 }

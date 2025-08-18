@@ -14,10 +14,14 @@ import java.time.LocalDate;
 public class Mapper {
     public static Customer toCustomer(WorkOrderRequestDTO workOrderRequestDTO) {
         Customer customer = new Customer();
-        customer.setAddress(workOrderRequestDTO.customerAddress());
-        customer.setEmail(workOrderRequestDTO.customerEmail());
-        customer.setPhone(workOrderRequestDTO.customerPhone());
         customer.setName(workOrderRequestDTO.customerName());
+        customer.setPhone(workOrderRequestDTO.customerPhone());
+        if (workOrderRequestDTO.customerEmail() != null) {
+            customer.setEmail(workOrderRequestDTO.customerEmail());
+        }
+        if (workOrderRequestDTO.customerAddress() != null) {
+            customer.setAddress(workOrderRequestDTO.customerAddress());
+        }
         return customer;
     }
     public static WorkOrder toWorkOrder(WorkOrderRequestDTO workOrderRequestDTO, Customer customer) {
@@ -25,7 +29,6 @@ public class Mapper {
         workOrder.setCustomer(customer);
         workOrder.setDescription(workOrderRequestDTO.workOrderDescription());
         workOrder.setCreatedAt(LocalDate.now());
-        workOrder.setWorkOrderStatues("IN_PROGRESS");
 
         if (workOrderRequestDTO.visitDate() != null) {
             workOrder.setVisitDate(workOrderRequestDTO.visitDate());
@@ -35,7 +38,7 @@ public class Mapper {
     }
     public static WorkOrderResponseDTO toWorkOrderResponse(WorkOrder workOrder, Customer customer) {
         WorkOrderResponseDTO workOrderResponseDTO= new WorkOrderResponseDTO(Long.toString(workOrder.getId()),workOrder.getDescription()
-        ,Long.toString(customer.getId()),customer.getName(),customer.getEmail(),customer.getPhone(),customer.getAddress(),workOrder.getCreatedAt().toString(),workOrder.getVisitDate().toString());
+        ,Long.toString(customer.getId()),customer.getName(),customer.getEmail(),customer.getPhone(),customer.getAddress(),workOrder.getCreatedAt().toString(),workOrder.getWorkOrderStatues());
 
         return workOrderResponseDTO;
     }

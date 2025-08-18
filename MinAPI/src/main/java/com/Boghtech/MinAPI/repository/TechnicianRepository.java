@@ -9,12 +9,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface TechnicianRepository extends JpaRepository<Technician, Long> {
-    @Query("SELECT t.id " +
+    @Query("SELECT t " +
             "FROM Technician t " +
             "LEFT JOIN TechSlot ts ON t.id = ts.technician.id AND ts.visitDate = :visitDate " +
-            "GROUP BY t.id " +
+            "GROUP BY t.id, t.name, t.email, t.phone, t.address " +
             "HAVING COUNT(ts.id) < :totalSlots")
-    List<Long> findTechnicianIdsWithAvailableSlots(
+    List<Technician> findAvailableTechnicians(
             @Param("visitDate") LocalDate visitDate,
             @Param("totalSlots") long totalSlots
     );

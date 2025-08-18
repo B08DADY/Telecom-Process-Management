@@ -9,7 +9,7 @@ public record WorkOrderResponseDTO(
         String customerPhone,
         String customerAddress,
         String createdAt,
-        String VisitDate
+        String statues
         ) {
 
 

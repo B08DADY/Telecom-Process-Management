@@ -1,5 +1,6 @@
 package com.Boghtech.MinAPI.dto;
 
+import com.Boghtech.MinAPI.validation.EgyptianPhoneNumber;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ public record TechnicianRequestDTO(
         String email,
 
         @NotNull(message = "Phone number is required.")
+        @EgyptianPhoneNumber
         String phone,
 
         @NotNull(message = "Address is required.")

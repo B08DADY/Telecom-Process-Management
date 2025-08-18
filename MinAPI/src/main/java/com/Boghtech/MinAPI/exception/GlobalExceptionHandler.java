@@ -34,4 +34,12 @@ public class GlobalExceptionHandler {
         errorMap.put("message", ex.getMessage());
         return errorMap;
     }
+
+    @ResponseStatus(HttpStatus.CONFLICT) // Sets the HTTP status to 409
+    @ExceptionHandler(ResourceConflictException.class)
+    public Map<String, String> handleResourceConflictException(ResourceConflictException ex) {
+        Map<String, String> errorMap = new HashMap<>();
+        errorMap.put("message", ex.getMessage());
+        return errorMap;
+    }
 }

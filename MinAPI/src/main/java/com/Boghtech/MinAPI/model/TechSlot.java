@@ -31,6 +31,6 @@ public class TechSlot {
     @Column(name = "visit_date", nullable = false)
     private LocalDate visitDate;
 
-    @Column(name = "slot", nullable = false)
-    private int slot;
+    @Column(name = "slot",nullable = true)
+    private Integer slot;
 }

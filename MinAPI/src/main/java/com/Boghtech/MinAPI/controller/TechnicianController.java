@@ -47,10 +47,10 @@ public class TechnicianController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<Long>> getAvailableTechnicians(
+    public ResponseEntity<List<TechnicianResponseDTO>> getAvailableTechnicians(
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        List<Long> availableTechnicianIds = technicianService.findAvailableTechniciansByDate(date);
+        List<TechnicianResponseDTO> availableTechnicianIds = technicianService.findAvailableTechniciansByDate(date);
         return ResponseEntity.ok(availableTechnicianIds);
     }
 

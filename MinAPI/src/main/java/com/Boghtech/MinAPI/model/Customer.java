@@ -20,7 +20,6 @@ public class Customer {
     @NotNull
     private String name;
 
-    @NotNull
     @Column(unique=true)
     @Email
     private String email;
@@ -28,7 +27,6 @@ public class Customer {
     @NotNull
     private String phone;
 
-    @NotNull
     private String address;
 
     @OneToMany(mappedBy = "customer",cascade = CascadeType.ALL)

@@ -1,9 +1,8 @@
 package com.Boghtech.MinAPI.service;
 
 import com.Boghtech.MinAPI.Mapper;
-import com.Boghtech.MinAPI.dto.UpdateWorkOrderRequestDTO;
-import com.Boghtech.MinAPI.dto.WorkOrderRequestDTO;
-import com.Boghtech.MinAPI.dto.WorkOrderResponseDTO;
+import com.Boghtech.MinAPI.dto.*;
+import com.Boghtech.MinAPI.exception.ResourceConflictException;
 import com.Boghtech.MinAPI.exception.ResourceNotFoundException;
 import com.Boghtech.MinAPI.model.Customer;
 import com.Boghtech.MinAPI.model.TechSlot;
@@ -43,39 +42,48 @@ public class WorkOrderService {
     @Transactional
     public WorkOrderResponseDTO save(WorkOrderRequestDTO workOrderRequestDTO) {
 
-        if (workOrderRequestDTO.visitDate() != null) {
-            LocalDate maxAllowedDate = LocalDate.now().plusDays(14);
-            if (workOrderRequestDTO.visitDate().isAfter(maxAllowedDate)) {
-                // Throw a clear, user-friendly exception that results in a 400 Bad Request.
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Visit date cannot be more than 14 days in the future.");
+//        if (workOrderRequestDTO.visitDate() != null) {
+//            LocalDate maxAllowedDate = LocalDate.now().plusDays(14);
+//            if (workOrderRequestDTO.visitDate().isAfter(maxAllowedDate)) {
+//                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Visit date cannot be more than 14 days in the future.");
+//            }
+//        }
+        Customer customer;
+        if(workOrderRequestDTO.customerEmail()!=null) {
+            Optional<Customer> checkCustomer = customerRepository.findByEmail(workOrderRequestDTO.customerEmail());
+
+            if (checkCustomer.isPresent()) {
+                customer = checkCustomer.get();
+
+            } else {
+                customer = Mapper.toCustomer(workOrderRequestDTO);
             }
         }
-
-
-        Optional<Customer> checkCustomer=customerRepository.findByEmail(workOrderRequestDTO.customerEmail());
-        Customer customer;
-        if(checkCustomer.isPresent()) {
-            customer=checkCustomer.get();
-
-        }
-        else {
+        else{
             customer=Mapper.toCustomer(workOrderRequestDTO);
         }
+
         customer=customerRepository.save(customer);
         WorkOrder workOrder=Mapper.toWorkOrder(workOrderRequestDTO,customer);
+        workOrder.setWorkOrderStatues("New");
         workOrder=workOrderRepository.save(workOrder);
         return Mapper.toWorkOrderResponse(workOrder,customer);
     }
 
-    public void deleteById(Long id) {
-
-        if (!workOrderRepository.existsById(id)) {
-
-            throw new ResourceNotFoundException("WorkOrder with ID '" + id + "' not found.");
-        }
+    @Transactional
+    public WorkOrderResponseDTO closeWorkOrder(Long id) {
+        WorkOrder workOrder = workOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + id + "' not found."));
 
 
-        workOrderRepository.deleteById(id);
+        workOrder.setWorkOrderStatues("CLOSED");
+
+        techSlotRepository.findByWorkOrder(workOrder).ifPresent(slot -> {
+            techSlotRepository.delete(slot);
+        });
+        WorkOrder savedWorkOrder = workOrderRepository.save(workOrder);
+
+        return Mapper.toWorkOrderResponse(savedWorkOrder, savedWorkOrder.getCustomer());
     }
 
     public List<WorkOrderResponseDTO> findAll() {
@@ -92,23 +100,39 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrderResponseDTO assignTechnician(Long workOrderId, Long technicianId) {
-
+    public WorkOrderResponseDTO assignTechnicianAndCreateSlot(Long workOrderId, AssignTechnicianRequestDTO assignRequest) {
+        // 1. Find the WorkOrder or throw a 404 error
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
-                .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID " + workOrderId + " not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + workOrderId + "' not found."));
 
+        // 2. Find the Technician or throw a 404 error
+        Technician technician = technicianRepository.findById(assignRequest.technicianId())
+                .orElseThrow(() -> new ResourceNotFoundException("Technician with ID '" + assignRequest.technicianId() + "' not found."));
 
-        Technician technician = technicianRepository.findById(technicianId)
-                .orElseThrow(() -> new ResourceNotFoundException("Technician with ID " + technicianId + " not found."));
+        // 3. Business Rule: Check if the WorkOrder is already assigned/scheduled
+        if (techSlotRepository.findByWorkOrder(workOrder).isPresent()) {
+            throw new ResourceConflictException("WorkOrder with ID '" + workOrderId + "' is already assigned or scheduled.");
+        }
 
-
+        // 4. Update the WorkOrder details
         workOrder.setTechnician(technician);
+        workOrder.setWorkOrderStatues("ASSIGNED");
 
+        // 5. Create the new TechSlot entity with a NULL slot
+        TechSlot newSlot = new TechSlot(
+                null,
+                technician,
+                workOrder,
+                assignRequest.visitDate(),
+                null // <-- Passing NULL for the slot
+        );
 
-        WorkOrder updatedWorkOrder = workOrderRepository.save(workOrder);
+        // 6. Save both entities in one transaction
+        techSlotRepository.save(newSlot);
+        workOrderRepository.save(workOrder);
 
-
-        return Mapper.toWorkOrderResponse(updatedWorkOrder, updatedWorkOrder.getCustomer());
+        // 7. Return the updated work order
+        return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());
     }
     @Transactional
     public WorkOrderResponseDTO updateWorkOrder(Long workOrderId, UpdateWorkOrderRequestDTO dto) {
@@ -140,25 +164,35 @@ public class WorkOrderService {
     }
 
     @Transactional
-    public WorkOrderResponseDTO reassignTechnician(Long workOrderId, Long newTechnicianId) {
+    public WorkOrderResponseDTO reassignTechnician(Long workOrderId, ReAssignTechnicianRequestDTO reassignRequest) {
+        // 1. Find the essential entities, or throw 404 errors.
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + workOrderId + "' not found."));
 
-        Technician newTechnician = technicianRepository.findById(newTechnicianId)
-                .orElseThrow(() -> new ResourceNotFoundException("Technician with ID '" + newTechnicianId + "' not found."));
+        Technician newTechnician = technicianRepository.findById(reassignRequest.newTechnicianId())
+                .orElseThrow(() -> new ResourceNotFoundException("New Technician with ID '" + reassignRequest.newTechnicianId() + "' not found."));
 
-        Optional<TechSlot> associatedSlot = techSlotRepository.findByWorkOrder(workOrder);
-        associatedSlot.ifPresent(techSlotRepository::delete);
+        // 2. Find the existing schedule slot for this work order.
+        // If it's not assigned/scheduled, it can't be reassigned.
+        TechSlot existingSlot = techSlotRepository.findByWorkOrder(workOrder)
+                .orElseThrow(() -> new ResourceNotFoundException("No schedule found for WorkOrder with ID '" + workOrderId + "'. It cannot be reassigned."));
 
+        // 3. Perform the updates as per your new logic.
 
+        // Update the WorkOrder's technician reference.
         workOrder.setTechnician(newTechnician);
-        workOrder.setVisitDate(null);
+        workOrder.setWorkOrderStatues("ASSIGNED"); // Status is now 'ASSIGNED', not 'SCHEDULED'.
 
+        // Update the TechSlot: change the technician and set the time slot to null.
+        // The visitDate remains the same.
+        existingSlot.setTechnician(newTechnician);
+        existingSlot.setSlot(null); // <-- Setting the specific time slot to null
 
-        WorkOrder updatedWorkOrder = workOrderRepository.save(workOrder);
+        // 4. The @Transactional annotation ensures both the updated workOrder and
+        // existingSlot are saved to the database automatically. No explicit .save() calls are needed.
 
-
-        return Mapper.toWorkOrderResponse(updatedWorkOrder, updatedWorkOrder.getCustomer());
+        // 5. Return the updated work order details.
+        return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());
     }
 
 

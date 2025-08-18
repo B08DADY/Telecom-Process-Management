@@ -1,9 +1,6 @@
 package com.Boghtech.MinAPI.controller;
 
-import com.Boghtech.MinAPI.dto.AssignTechnicianRequestDTO;
-import com.Boghtech.MinAPI.dto.UpdateWorkOrderRequestDTO;
-import com.Boghtech.MinAPI.dto.WorkOrderRequestDTO;
-import com.Boghtech.MinAPI.dto.WorkOrderResponseDTO;
+import com.Boghtech.MinAPI.dto.*;
 import com.Boghtech.MinAPI.model.WorkOrder;
 import com.Boghtech.MinAPI.service.WorkOrderService;
 import jakarta.validation.Valid;
@@ -30,7 +27,7 @@ public class WorkOrderController {
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteWorkOrder(@PathVariable Long id) {
-        workOrderService.deleteById(id);
+        workOrderService.closeWorkOrder(id);
 
         return ResponseEntity.noContent().build();
     }
@@ -46,13 +43,13 @@ public class WorkOrderController {
         return ResponseEntity.ok(unassignedWorkOrders);
     }
 
-    @PatchMapping("/{workOrderId}/assign")
+    @PostMapping("/{id}/assign")
     public ResponseEntity<WorkOrderResponseDTO> assignTechnician(
-            @PathVariable Long workOrderId,
-            @Valid @RequestBody AssignTechnicianRequestDTO request) {
+            @PathVariable Long id,
+            @Valid @RequestBody AssignTechnicianRequestDTO assignRequest) {
 
-        WorkOrderResponseDTO updatedWorkOrder = workOrderService.assignTechnician(workOrderId, request.technicianId());
-        return ResponseEntity.ok(updatedWorkOrder);
+        WorkOrderResponseDTO assignedWorkOrder = workOrderService.assignTechnicianAndCreateSlot(id, assignRequest);
+        return ResponseEntity.ok(assignedWorkOrder);
     }
     @PatchMapping("/{id}")
     public ResponseEntity<WorkOrderResponseDTO> updateWorkOrder(
@@ -65,9 +62,9 @@ public class WorkOrderController {
     @PatchMapping("/{workOrderId}/reassign")
     public ResponseEntity<WorkOrderResponseDTO> reassignTechnician(
             @PathVariable Long workOrderId,
-            @Valid @RequestBody AssignTechnicianRequestDTO request) {
+            @Valid @RequestBody ReAssignTechnicianRequestDTO request) {
 
-        WorkOrderResponseDTO updatedWorkOrder = workOrderService.reassignTechnician(workOrderId, request.technicianId());
+        WorkOrderResponseDTO updatedWorkOrder = workOrderService.reassignTechnician(workOrderId, request);
         return ResponseEntity.ok(updatedWorkOrder);
     }
 
