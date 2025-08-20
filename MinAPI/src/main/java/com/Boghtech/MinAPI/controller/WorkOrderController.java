@@ -42,6 +42,11 @@ public class WorkOrderController {
         List<WorkOrderResponseDTO> unassignedWorkOrders = workOrderService.findUnassigned();
         return ResponseEntity.ok(unassignedWorkOrders);
     }
+    @GetMapping("/{id}")
+    public ResponseEntity<WorkOrderResponseDTO> getWorkOrderById(@PathVariable Long id) {
+        WorkOrderResponseDTO workOrder = workOrderService.findById(id);
+        return ResponseEntity.ok(workOrder);
+    }
 
     @PostMapping("/{id}/assign")
     public ResponseEntity<WorkOrderResponseDTO> assignTechnician(
@@ -67,11 +72,13 @@ public class WorkOrderController {
         WorkOrderResponseDTO updatedWorkOrder = workOrderService.reassignTechnician(workOrderId, request);
         return ResponseEntity.ok(updatedWorkOrder);
     }
-    @PatchMapping("/{workOrderId}/Reschedule")
-    public ResponseEntity<WorkOrderResponseDTO> RescheduleWorkOrder
+        @PatchMapping("/{workOrderId}/Reschedule")
+        public ResponseEntity<WorkOrderResponseDTO> RescheduleWorkOrder
             (@PathVariable Long workOrderId,
              @Valid @RequestBody AssignTechnicianRequestDTO assignRequestt){
+
         WorkOrderResponseDTO updatedWorkOrder = workOrderService.RescheduleWorkOrder(workOrderId,assignRequestt);
+            System.out.println(updatedWorkOrder.visitDate());
         return ResponseEntity.ok(updatedWorkOrder);
     }
 

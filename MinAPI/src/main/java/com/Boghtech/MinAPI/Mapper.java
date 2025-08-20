@@ -37,14 +37,18 @@ public class Mapper {
         return workOrder;
     }
     public static WorkOrderResponseDTO toWorkOrderResponse(WorkOrder workOrder, Customer customer) {
+        String vs=null;
+        if(workOrder.getVisitDate()!=null)
+            vs=workOrder.getVisitDate().toString();
+
         if(workOrder.getTechnician()!=null)
            return new WorkOrderResponseDTO(Long.toString(workOrder.getId()),workOrder.getDescription()
-            ,Long.toString(customer.getId()),customer.getName(),customer.getEmail(),customer.getPhone(),customer.getAddress(),workOrder.getCreatedAt().toString(),workOrder.getWorkOrderStatues(), Long.toString(workOrder.getTechnician().getId()));
+            ,Long.toString(customer.getId()),customer.getName(),customer.getEmail(),customer.getPhone(),customer.getAddress(),workOrder.getCreatedAt().toString(),workOrder.getWorkOrderStatues(), Long.toString(workOrder.getTechnician().getId()),vs);
         else
             return new WorkOrderResponseDTO(Long.toString(workOrder.getId()),workOrder.getDescription()
                     ,Long.toString(customer.getId()),customer.getName(),customer.getEmail(),
                     customer.getPhone(),customer.getAddress(),workOrder.getCreatedAt().toString(),
-                    workOrder.getWorkOrderStatues(), null);
+                    workOrder.getWorkOrderStatues(), null,vs);
 
     }
     public static Technician toTechnician(TechnicianRequestDTO dto) {

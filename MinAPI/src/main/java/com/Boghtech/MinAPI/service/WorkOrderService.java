@@ -39,6 +39,11 @@ public class WorkOrderService {
         this.techSlotRepository=TechSlotRepository;
     }
 
+    public WorkOrderResponseDTO findById(Long id) {
+        WorkOrder workOrder = workOrderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + id + "' not found."));
+        return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());
+    }
 
     @Transactional
     public WorkOrderResponseDTO save(WorkOrderRequestDTO workOrderRequestDTO) {
@@ -218,26 +223,23 @@ public class WorkOrderService {
       {
           throw new ResourceConflictException("WorkOrder with ID '" + workOrderId + "' is not Assigned.");
       }
+
+        TechSlot existingSlot = techSlotRepository.findByWorkOrder(workOrder)
+                .orElseThrow(() -> new ResourceNotFoundException("No schedule found for WorkOrder with ID '" + workOrderId + "'. It cannot be reassigned."));
+
+
+        workOrder.setTechnician(technician);
+        workOrder.setWorkOrderStatues("ASSIGNED"); // Status is now 'ASSIGNED', not 'SCHEDULED'.
+
+        // Update the TechSlot: change the technician and set the time slot to null.
+        // The visitDate remains the same.
+        existingSlot.setTechnician(technician);
+        existingSlot.setSlot(null); // <-- Setting the specific time slot to null
+        existingSlot.setVisitDate(assignRequest.visitDate());
         workOrder.setTechnician(technician);
         workOrder.setVisitDate(assignRequest.visitDate());
         workOrder.setWorkOrderStatues("ASSIGNED");
 
-        TechSlot newSlot = new TechSlot(
-                null,
-                technician,
-                workOrder,
-                assignRequest.visitDate(),
-                null // <-- Passing NULL for the slot
-        );
-
-        // 6. Save both entities in one transaction
-        try {
-            TechSlot savedSlot = techSlotRepository.save(newSlot);
-
-        } catch (RuntimeException e) {
-
-            throw new ResourceConflictException("This technician is already booked for this specific date and time slot.");
-        }
         workOrderRepository.save(workOrder);
         // 7. Return the updated work order
         return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());

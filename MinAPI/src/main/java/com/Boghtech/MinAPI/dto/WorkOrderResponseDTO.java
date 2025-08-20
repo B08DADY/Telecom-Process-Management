@@ -10,7 +10,8 @@ public record WorkOrderResponseDTO(
         String customerAddress,
         String createdAt,
         String statues,
-        String TechnicianID
+        String TechnicianID,
+        String visitDate
         ) {
 
 
