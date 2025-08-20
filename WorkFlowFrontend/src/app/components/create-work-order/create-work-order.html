@@ -1,0 +1,94 @@
+<!-- src/app/components/create-work-order/create-work-order.html -->
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+      
+      <div class="text-center mb-4">
+        <img src="workordercreate.png" alt="Telecom Logo" width="300" >
+        <h2 class="mt-2">Create New Work Order</h2>
+        <p class="text-muted">Fill in the details below to submit a new service request.</p>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+          <form [formGroup]="workOrderForm" (ngSubmit)="onSubmit()" novalidate>
+
+            <!-- Success and Error Alerts -->
+            <div *ngIf="successMessage" class="alert alert-success">
+              <i class="fas fa-check-circle"></i> {{ successMessage }}
+            </div>
+            <div *ngIf="errorMessage" class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle"></i> {{ errorMessage }}
+            </div>
+
+            <!-- Customer Details Section -->
+            <h5><i class="fas fa-user me-2"></i>Customer Information</h5>
+            <hr class="mt-0">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="customerName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <input type="text" id="customerName" class="form-control" formControlName="customerName" 
+                       [ngClass]="{ 'is-invalid': f['customerName'].touched && f['customerName'].invalid }">
+                <div *ngIf="f['customerName'].touched && f['customerName'].invalid" class="invalid-feedback">
+                  <div *ngIf="f['customerName'].errors?.['required']">Name is required.</div>
+                  <div *ngIf="f['customerName'].errors?.['minlength']">Name must be at least 3 characters.</div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="customerPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                <input type="tel" id="customerPhone" class="form-control" formControlName="customerPhone" 
+                       [ngClass]="{ 'is-invalid': f['customerPhone'].touched && f['customerPhone'].invalid }">
+                <div *ngIf="f['customerPhone'].touched && f['customerPhone'].invalid" class="invalid-feedback">
+                  <div *ngIf="f['customerPhone'].errors?.['required']">Phone number is required.</div>
+                  <div *ngIf="f['customerPhone'].errors?.['pattern']">Please enter a valid Egyptian phone number.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="customerEmail" class="form-label">Email Address (Optional)</label>
+              <input type="email" id="customerEmail" class="form-control" formControlName="customerEmail"
+                     [ngClass]="{ 'is-invalid': f['customerEmail'].touched && f['customerEmail'].invalid }">
+              <div *ngIf="f['customerEmail'].touched && f['customerEmail'].invalid" class="invalid-feedback">
+                <div *ngIf="f['customerEmail'].errors?.['email']">Please enter a valid email address.</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="customerAddress" class="form-label">Service Address (Optional)</label>
+              <textarea id="customerAddress" class="form-control" formControlName="customerAddress" rows="2"></textarea>
+            </div>
+
+
+            <!-- Work Order Details Section -->
+            <h5 class="mt-4"><i class="fas fa-tools me-2"></i>Service Request Details</h5>
+            <hr class="mt-0">
+
+            <div class="mb-3">
+              <label for="workOrderDescription" class="form-label">Description of Issue <span class="text-danger">*</span></label>
+              <textarea id="workOrderDescription" class="form-control" formControlName="workOrderDescription" rows="4"
+                        [ngClass]="{ 'is-invalid': f['workOrderDescription'].touched && f['workOrderDescription'].invalid }"></textarea>
+              <div *ngIf="f['workOrderDescription'].touched && f['workOrderDescription'].invalid" class="invalid-feedback">
+                <div *ngIf="f['workOrderDescription'].errors?.['required']">Description is required.</div>
+                <div *ngIf="f['workOrderDescription'].errors?.['minlength']">Please provide a more detailed description (at least 10 characters).</div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-lg" [disabled]="loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i *ngIf="!loading" class="fas fa-paper-plane me-2"></i>
+                {{ loading ? 'Submitting...' : 'Submit Work Order' }}
+              </button>
+            </div>
+            
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

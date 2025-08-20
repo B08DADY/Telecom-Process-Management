@@ -1,0 +1,16 @@
+/* src/app/components/create-work-order/create-work-order.css */
+.card {
+  border: none;
+  border-radius: 15px;
+}
+
+.form-control {
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.btn-primary {
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
