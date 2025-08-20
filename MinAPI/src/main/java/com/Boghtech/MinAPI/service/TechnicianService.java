@@ -52,12 +52,7 @@ public class TechnicianService {
     public List<TechnicianResponseDTO> findAvailableTechniciansByDate(LocalDate date) {
         List<Technician> availableTechnicians = technicianRepository.findAvailableTechnicians(date, TOTAL_POSSIBLE_SLOTS);
 
-        if (date != null) {
-            LocalDate maxAllowedDate = LocalDate.now().plusDays(14);
-            if (date.isAfter(maxAllowedDate)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Visit date cannot be more than 14 days in the future.");
-            }
-        }
+
 
         if (availableTechnicians.isEmpty()) {
 

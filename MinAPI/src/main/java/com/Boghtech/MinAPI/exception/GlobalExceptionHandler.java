@@ -1,5 +1,6 @@
 package com.Boghtech.MinAPI.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -42,4 +43,6 @@ public class GlobalExceptionHandler {
         errorMap.put("message", ex.getMessage());
         return errorMap;
     }
+
+
 }

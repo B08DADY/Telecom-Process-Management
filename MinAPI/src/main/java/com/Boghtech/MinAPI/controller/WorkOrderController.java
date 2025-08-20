@@ -67,5 +67,12 @@ public class WorkOrderController {
         WorkOrderResponseDTO updatedWorkOrder = workOrderService.reassignTechnician(workOrderId, request);
         return ResponseEntity.ok(updatedWorkOrder);
     }
+    @PatchMapping("/{workOrderId}/Reschedule")
+    public ResponseEntity<WorkOrderResponseDTO> RescheduleWorkOrder
+            (@PathVariable Long workOrderId,
+             @Valid @RequestBody AssignTechnicianRequestDTO assignRequestt){
+        WorkOrderResponseDTO updatedWorkOrder = workOrderService.RescheduleWorkOrder(workOrderId,assignRequestt);
+        return ResponseEntity.ok(updatedWorkOrder);
+    }
 
 }

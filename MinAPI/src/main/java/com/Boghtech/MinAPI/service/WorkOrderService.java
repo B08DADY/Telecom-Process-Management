@@ -14,6 +14,7 @@ import com.Boghtech.MinAPI.repository.TechnicianRepository;
 import com.Boghtech.MinAPI.repository.WorkOrderRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -102,25 +103,26 @@ public class WorkOrderService {
     @Transactional
     public WorkOrderResponseDTO assignTechnicianAndCreateSlot(Long workOrderId, AssignTechnicianRequestDTO assignRequest) {
         // 1. Find the WorkOrder or throw a 404 error
-
-
-
         WorkOrder workOrder = workOrderRepository.findById(workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + workOrderId + "' not found."));
+
+
+//        techSlotRepository.findByWorkOrder(workOrder)
+//                .ifPresent(techSlotRepository::delete);
 
         // 2. Find the Technician or throw a 404 error
         Technician technician = technicianRepository.findById(assignRequest.technicianId())
                 .orElseThrow(() -> new ResourceNotFoundException("Technician with ID '" + assignRequest.technicianId() + "' not found."));
 
         // 3. Business Rule: Check if the WorkOrder is already assigned/scheduled
-        if (techSlotRepository.findByWorkOrder(workOrder).isPresent()) {
+        if (workOrder.getTechnician()!=null || workOrder.getWorkOrderStatues().equals("ASSIGNED")) {
             throw new ResourceConflictException("WorkOrder with ID '" + workOrderId + "' is already assigned or scheduled.");
         }
 
         // 4. Update the WorkOrder details
         workOrder.setTechnician(technician);
         workOrder.setWorkOrderStatues("ASSIGNED");
-
+        workOrder.setVisitDate(assignRequest.visitDate());
         // 5. Create the new TechSlot entity with a NULL slot
         TechSlot newSlot = new TechSlot(
                 null,
@@ -131,7 +133,13 @@ public class WorkOrderService {
         );
 
         // 6. Save both entities in one transaction
-        techSlotRepository.save(newSlot);
+        try {
+            TechSlot savedSlot = techSlotRepository.save(newSlot);
+
+        } catch (RuntimeException e) {
+
+            throw new ResourceConflictException("This technician is already booked for this specific date and time slot.");
+        }
         workOrderRepository.save(workOrder);
 
         // 7. Return the updated work order
@@ -197,6 +205,44 @@ public class WorkOrderService {
         // 5. Return the updated work order details.
         return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());
     }
+    @Transactional
+    public WorkOrderResponseDTO RescheduleWorkOrder(Long workOrderId, AssignTechnicianRequestDTO assignRequest)
+    {
+        // 1. Find the essential entities, or throw 404 errors.
+        WorkOrder workOrder = workOrderRepository.findById(workOrderId)
+                .orElseThrow(() -> new ResourceNotFoundException("WorkOrder with ID '" + workOrderId + "' not found."));
+        // 2. Find the Technician or throw a 404 error
+        Technician technician = technicianRepository.findById(assignRequest.technicianId())
+                .orElseThrow(() -> new ResourceNotFoundException("Technician with ID '" + assignRequest.technicianId() + "' not found."));
+      if(!workOrder.getWorkOrderStatues().equals("ASSIGNED"))
+      {
+          throw new ResourceConflictException("WorkOrder with ID '" + workOrderId + "' is not Assigned.");
+      }
+        workOrder.setTechnician(technician);
+        workOrder.setVisitDate(assignRequest.visitDate());
+        workOrder.setWorkOrderStatues("ASSIGNED");
+
+        TechSlot newSlot = new TechSlot(
+                null,
+                technician,
+                workOrder,
+                assignRequest.visitDate(),
+                null // <-- Passing NULL for the slot
+        );
+
+        // 6. Save both entities in one transaction
+        try {
+            TechSlot savedSlot = techSlotRepository.save(newSlot);
+
+        } catch (RuntimeException e) {
+
+            throw new ResourceConflictException("This technician is already booked for this specific date and time slot.");
+        }
+        workOrderRepository.save(workOrder);
+        // 7. Return the updated work order
+        return Mapper.toWorkOrderResponse(workOrder, workOrder.getCustomer());
 
 
-}
+    }
+
+    }

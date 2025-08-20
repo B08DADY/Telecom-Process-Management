@@ -1,16 +1,18 @@
 package com.Boghtech.MinAPI.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "TECH_SLOT_YAAM", uniqueConstraints = {
-
-        @UniqueConstraint(columnNames = {"technician_id", "visit_date", "slot"})
-})
-@Data
+// The uniqueConstraints attribute has been completely removed from @Table.
+@Table(name = "TECH_SLOT_YAAM")
+@Getter // Replaced @Data with specific, safe annotations for JPA
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class TechSlot {
@@ -25,12 +27,14 @@ public class TechSlot {
     private Technician technician;
 
     @OneToOne(fetch = FetchType.LAZY)
+    // This "unique = true" correctly represents the ONLY unique rule (besides the PK)
+    // that is left on the table.
     @JoinColumn(name = "work_order_id", nullable = false, unique = true)
     private WorkOrder workOrder;
 
     @Column(name = "visit_date", nullable = false)
     private LocalDate visitDate;
 
-    @Column(name = "slot",nullable = true)
+    @Column(name = "slot", nullable = true)
     private Integer slot;
 }
